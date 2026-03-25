@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mass Appraisal Reviewer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <h1>Mass Appraisal Reviewer</h1>
+            <p class="summary-text">
+                There were <strong>350,626</strong> properties that increased in assessed value since the last mass appraisal. 
+                Overall, each property assessment changed by an <strong>increase of 23.6% on average</strong>.
+            </p>
+
+            <div class="chart-container">
+                <h3>Current assessment value distribution...</h3>
+                <canvas id="distChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <h3>Percent change since last assessment...</h3>
+                <canvas id="changeChart"></canvas>
+            </div>
+        </aside>
+
+        <main class="map-area">
+            <div id="map"></div>
+            
+            <div class="map-controls">
+                <label><input type="checkbox"> Current absolute assessment $ values</label>
+                <label><input type="checkbox"> Tax year 2023 absolute assessment $ values</label>
+                <label><input type="checkbox" checked> Change (%) in assessment since tax year 2023</label>
+                <label><input type="checkbox"> Change ($) in assessment since tax year 2023</label>
+            </div>
+        </main>
+
+        <div id="detailModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <header class="modal-header">
+                    <h2><span class="icon">📍</span> 238 W CLAPIER ST</h2>
+                    <p>PHILADELPHIA, PA 19144-4102</p>
+                    <button class="print-btn">PRINT</button>
+                </header>
+
+                <div class="tax-balance-banner">
+                    <div class="icon-card">$=</div>
+                    <div>
+                        <h3>Real Estate Tax Balance</h3>
+                        <p>Balance details on this property.</p>
+                    </div>
+                    <button class="view-btn">VIEW THE TAX BALANCE</button>
+                </div>
+
+                <section class="valuation-history">
+                    <h3>Valuation History (9)</h3>
+                    <p class="disclaimer">Taxable and exempt land values can represent the contributory value of land...</p>
+                    <div class="line-chart-container">
+                        <canvas id="valuationLineChart"></canvas>
+                    </div>
+                    <table class="valuation-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Market Value</th>
+                                <th>Taxable Land</th>
+                                <th>Taxable Improvement</th>
+                                <th>Exempt Land</th>
+                                <th>Exempt Improvement</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2023</td>
+                                <td>$152,000</td>
+                                <td>$30,400</td>
+                                <td>$121,600</td>
+                                <td>$0</td>
+                                <td>$0</td>
+                            </tr>
+                            <tr class="muted">
+                                <td>2022</td>
+                                <td>$46,000</td>
+                                <td>$6,900</td>
+                                <td>$39,100</td>
+                                <td>$0</td>
+                                <td>$0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
