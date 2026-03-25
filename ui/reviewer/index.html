@@ -3,102 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mass Appraisal Reviewer</title>
+    <title>Philadelphia CAMA Assessment Reviewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
     <div class="app-container">
-        <aside class="sidebar">
-            <h1>Mass Appraisal Reviewer</h1>
-            <p class="summary-text">
-                There were <strong>350,626</strong> properties that increased in assessed value since the last mass appraisal. 
-                Overall, each property assessment changed by an <strong>increase of 23.6% on average</strong>.
-            </p>
-
-            <div class="chart-container">
-                <h3>Current assessment value distribution...</h3>
-                <canvas id="distChart"></canvas>
+        <header class="top-nav">
+            <div class="brand">
+                <div class="logo-placeholder"></div>
+                <h1>Philadelphia CAMA Assessment Reviewer</h1>
             </div>
-
-            <div class="chart-container">
-                <h3>Percent change since last assessment...</h3>
-                <canvas id="changeChart"></canvas>
+            <div class="user-controls">
+                <div class="icon-btn" title="Settings">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </div>
+                <div class="user-profile" title="User Profile">
+                    <span>JD</span>
+                </div>
             </div>
-        </aside>
+        </header>
 
-        <main class="map-area">
-            <div id="map"></div>
+        <main class="main-layout">
             
-            <div class="map-controls">
-                <label><input type="checkbox"> Current absolute assessment $ values</label>
-                <label><input type="checkbox"> Tax year 2023 absolute assessment $ values</label>
-                <label><input type="checkbox" checked> Change (%) in assessment since tax year 2023</label>
-                <label><input type="checkbox"> Change ($) in assessment since tax year 2023</label>
-            </div>
-        </main>
-
-        <div id="detailModal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <header class="modal-header">
-                    <h2><span class="icon">📍</span> 238 W CLAPIER ST</h2>
-                    <p>PHILADELPHIA, PA 19144-4102</p>
-                    <button class="print-btn">PRINT</button>
-                </header>
-
-                <div class="tax-balance-banner">
-                    <div class="icon-card">$=</div>
-                    <div>
-                        <h3>Real Estate Tax Balance</h3>
-                        <p>Balance details on this property.</p>
+            <aside class="sidebar panel property-panel">
+                <div class="search-section">
+                    <h2>Property Search</h2>
+                    <div class="search-box">
+                        <input type="text" placeholder="Enter Address or OPA/BRT Number..." id="property-search">
+                        <button type="button" class="btn-primary">Search</button>
                     </div>
-                    <button class="view-btn">VIEW THE TAX BALANCE</button>
                 </div>
 
-                <section class="valuation-history">
-                    <h3>Valuation History (9)</h3>
-                    <p class="disclaimer">Taxable and exempt land values can represent the contributory value of land...</p>
-                    <div class="line-chart-container">
-                        <canvas id="valuationLineChart"></canvas>
+                <div class="details-section">
+                    <h2>Property Details</h2>
+                    <div class="placeholder-state" id="details-placeholder">
+                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        <p>Select or search for a property to view its assessment details.</p>
                     </div>
-                    <table class="valuation-table">
-                        <thead>
-                            <tr>
-                                <th>Year</th>
-                                <th>Market Value</th>
-                                <th>Taxable Land</th>
-                                <th>Taxable Improvement</th>
-                                <th>Exempt Land</th>
-                                <th>Exempt Improvement</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>2023</td>
-                                <td>$152,000</td>
-                                <td>$30,400</td>
-                                <td>$121,600</td>
-                                <td>$0</td>
-                                <td>$0</td>
-                            </tr>
-                            <tr class="muted">
-                                <td>2022</td>
-                                <td>$46,000</td>
-                                <td>$6,900</td>
-                                <td>$39,100</td>
-                                <td>$0</td>
-                                <td>$0</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-            </div>
-        </div>
-    </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js"></script>
+                    <div class="card property-card" style="display: none;">
+                        <div class="data-group">
+                            <label>Address</label>
+                            <div class="data-value">1234 Market St, Philadelphia, PA 19107</div>
+                        </div>
+                        <div class="data-group">
+                            <label>OPA/BRT Number</label>
+                            <div class="data-value">883309000</div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="data-group">
+                            <label>Current Assessed Value (2025)</label>
+                            <div class="data-value highlight-currency">$450,000</div>
+                        </div>
+                        <div class="data-group">
+                            <label>Predicted Value (CAMA Model)</label>
+                            <div class="data-value highlight-currency predicted">$465,500</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="map-area">
+                <div id="map-container">
+                    <div class="map-placeholder">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                        <h3>Map View</h3>
+                        <p>Vector tiles from <code>/tiles/</code> will render here.</p>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="sidebar panel analytics-panel">
+                <h2>Assessment Analytics</h2>
+                <p class="subtitle">Neighborhood vs. Citywide Distribution</p>
+                
+                <div id="chart-container-1" class="chart-card">
+                    <div class="chart-placeholder">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <span>Loading Value Distribution...</span>
+                        <small>Waiting for <code>/configs/</code> JSON</small>
+                    </div>
+                </div>
+
+                <div id="chart-container-2" class="chart-card">
+                    <div class="chart-placeholder">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                        <span>Loading Error Margin Analysis...</span>
+                    </div>
+                </div>
+            </aside>
+
+        </main>
+    </div>
 </body>
 </html>
