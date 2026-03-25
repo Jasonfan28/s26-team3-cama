@@ -1,75 +1,103 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8" />
-  <title>MUSA 5090 - CAMA Project</title>
-    <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="style.css" />
-
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    main {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    h1 {
-      text-align: center;
-    }
-
-    nav {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-    }
-
-    @media (orientation: portrait) {
-      nav {
-        flex-direction: column;
-      }
-    }
-
-    a {
-      display: block;
-      padding: 2rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      text-decoration: none;
-      color: #333;
-      transition: all 0.2s ease-in-out;
-    }
-
-    a:hover {
-      background-color: #f5f5f5;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transform: translateY(-2px);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Philadelphia CAMA Assessment Reviewer</title>
+  <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <main>
-    <h1>MUSA 5090 - CAMA Project</h1>
-    <nav>
-      <a href="./reviewer">Tax Assessor Review UI</a>
-      <a href="./widget">Property Owner Widget UI</a>
-    </nav>
-  </main>
-    <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <!-- Your JS -->
+    <div class="app-container">
+        <header class="top-nav">
+            <div class="brand">
+                <div class="logo-placeholder"></div>
+                <h1>Philadelphia CAMA Assessment Reviewer</h1>
+            </div>
+            <div class="user-controls">
+                <div class="icon-btn" title="Settings">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </div>
+                <div class="user-profile" title="User Profile">
+                    <span>JD</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-layout">
+            
+            <aside class="sidebar panel property-panel">
+                <div class="search-section">
+                    <h2>Property Search</h2>
+                    <div class="search-box">
+                        <input type="text" placeholder="Enter Address or OPA/BRT Number..." id="property-search">
+                        <button type="button" class="btn-primary">Search</button>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h2>Property Details</h2>
+                    <div class="placeholder-state" id="details-placeholder">
+                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        <p>Select or search for a property to view its assessment details.</p>
+                    </div>
+
+                    <div class="card property-card" style="display: none;">
+                        <div class="data-group">
+                            <label>Address</label>
+                            <div class="data-value">1234 Market St, Philadelphia, PA 19107</div>
+                        </div>
+                        <div class="data-group">
+                            <label>OPA/BRT Number</label>
+                            <div class="data-value">883309000</div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="data-group">
+                            <label>Current Assessed Value (2025)</label>
+                            <div class="data-value highlight-currency">$450,000</div>
+                        </div>
+                        <div class="data-group">
+                            <label>Predicted Value (CAMA Model)</label>
+                            <div class="data-value highlight-currency predicted">$465,500</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="map-area">
+                <div id="map-container">
+                    <div class="map-placeholder">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                        <h3>Map View</h3>
+                        <p>Vector tiles from <code>/tiles/</code> will render here.</p>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="sidebar panel analytics-panel">
+                <h2>Assessment Analytics</h2>
+                <p class="subtitle">Neighborhood vs. Citywide Distribution</p>
+                
+                <div id="chart-container-1" class="chart-card">
+                    <div class="chart-placeholder">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <span>Loading Value Distribution...</span>
+                        <small>Waiting for <code>/configs/</code> JSON</small>
+                    </div>
+                </div>
+
+                <div id="chart-container-2" class="chart-card">
+                    <div class="chart-placeholder">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                        <span>Loading Error Margin Analysis...</span>
+                    </div>
+                </div>
+            </aside>
+
+        </main>
+    </div>
+      <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="script.js"></script>
 </body>
-
 </html>
