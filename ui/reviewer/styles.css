@@ -266,6 +266,11 @@ body {
     justify-content: center;
 }
 
+#map {
+    height: 100%;
+    width: 100%;
+}
+
 /* --- Placeholders --- */
 .placeholder-state {
     display: flex;

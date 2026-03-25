@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize map centered on Philly
     const map = L.map('map-container').setView([39.9526, -75.1652], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
 
     // Add a sample marker (Matches the 1234 Market St example in the HTML)
     const marker = L.marker([39.9526, -75.1652]).addTo(map);
