@@ -11,6 +11,17 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
+dependencies = [
+    "functions-framework>=3.10.1",
+    "geopandas>=1.0.1",
+    "google-cloud-storage>=3.9.0",
+    "ipykernel>=6.31.0",
+    "pandas>=2.3.3",
+    "pip>=26.0.1",
+    "pyarrow>=21.0.0",
+    "python-dotenv>=1.2.1",
+    "requests>=2.32.5",
+]
 
 [dependency-groups]
 dev = [
