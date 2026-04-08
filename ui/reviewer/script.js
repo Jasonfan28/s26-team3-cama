@@ -4,27 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     mapContainer.innerHTML = ''; // Clear the SVG placeholder
     
     // Initialize map centered on Philly
-    const map = L.map('map-container').setView([39.95238, -75.16362], 11);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© OpenStreetMap contributors © CARTO'
-}).addTo(map);
-
-// Philly boundary outline
-fetch('https://raw.githubusercontent.com/Weitzman-MUSA-GeoCloud/s26-team3-cama/refs/heads/main/ui/City_Limits.geojson')
-  .then(res => res.json())
-  .then(data => {
-    L.geoJSON(data, {
-      style: {
-        color: '#1e40af',
-        weight: 2,
-        fill: false
-      }
+    const map = L.map('map-container').setView([39.9526, -75.1652], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
     }).addTo(map);
-  });
 
     // Add a sample marker (Matches the 1234 Market St example in the HTML)
-    const marker = L.marker([39.95237570893766, -75.16360991301265]).addTo(map);
-    marker.bindPopup(`<strong>1400 John F. Kennedy Blvd</strong><br>Click to view details.`).openPopup();
+    const marker = L.marker([39.9526, -75.1652]).addTo(map);
+    marker.bindPopup(`<strong>1234 Market St</strong><br>Click to view details.`).openPopup();
 
     // --- 2. Interaction: Updating the Sidebar (Replaces Modal logic) ---
     const detailsPlaceholder = document.getElementById('details-placeholder');
