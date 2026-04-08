@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />    
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -67,11 +66,15 @@
                 </div>
             </aside>
 
-                <section class="map-area">
-                    <div id="map-container">
-                        <div id="map"></div>
+            <section class="map-area">
+                <div id="map-container">
+                    <div class="map-placeholder">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                        <h3>Map View</h3>
+                        <p>Vector tiles from <code>/tiles/</code> will render here.</p>
                     </div>
-                </section>
+                </div>
+            </section>
 
             <aside class="sidebar panel analytics-panel">
                 <h2>Assessment Analytics</h2>
@@ -95,7 +98,5 @@
 
         </main>
     </div>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>
