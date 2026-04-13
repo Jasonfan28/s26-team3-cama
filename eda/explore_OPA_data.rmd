@@ -1,0 +1,243 @@
+---
+title: "OPA Data Explorer"
+output: html_document
+---
+
+# OPA Data Explorer
+
+## 1. Aim of the Analysis
+
+The goal of this analysis is to understand what drives property sale prices in Philadelphia and identify which features are useful for building a predictive model.
+
+The target variable is `sale_price`, since it reflects actual market transactions.
+
+This analysis is done in R to explore and understand the data. However, the final pipeline will be built in SQL on the cloud. So everything here is structured in a way that can later be translated into SQL.
+
+At a high level, the process is:
+
+- get and understand the data  
+- clean it so it reflects real transactions  
+- explore patterns  
+- identify useful features for the model  
+
+---
+
+## 2. Data Sources
+
+### OPA Property Data
+The main dataset comes from the Philadelphia OPA dataset (via Carto API). This includes:
+
+- sale price and sale date  
+- property characteristics (area, bedrooms, bathrooms, year built)  
+- zoning and property type  
+- geographic identifiers (ZIP, census tract, ward)  
+- geometry (location of the property)  
+
+### Additional Data (to be added later)
+
+- **Census Data (ACS)**: will be pulled using `tidycensus`  
+  - income, population, demographics  
+
+- **Crime Data and Other Layers**:  
+  - downloaded as shapefiles from Open Data Philly  
+  - includes crime, amenities, and other spatial layers  
+
+---
+
+## 3. Overall Strategy
+
+The goal is to move from raw data → clean data → useful features.
+
+This is done in three steps:
+
+### Step 1: Clean the data  
+Remove anything that does not represent real market transactions  
+
+### Step 2: Explore the data  
+Understand which features actually affect `sale_price`  
+
+### Step 3: Define features  
+Decide what variables should go into the model and how they should be transformed  
+
+---
+
+## 4. Getting the Data
+
+```{r getting_data}
+library(sf)
+
+url <- "https://phl.carto.com/api/v2/sql?q=SELECT%20*%20FROM%20opa_properties_public%20LIMIT%201000&format=GeoJSON"
+
+opa_data <- st_read(url)
+
+head(opa_data)
+
+```
+
+## 5. Understanding Key Variables
+
+- **`sale_price`: the actual price at which the property last sold. This is the target variable for the model.**
+- **`sale_date`: the date of the last recorded sale.**
+- `market_value`: the Office of Property Assessment's estimate of the property's market value. This is not the same as `sale_price` and should not be used as the target variable.
+- `total_livable_area`: the size of the livable building area.
+- `year_built`: the year the structure was built.
+- `number_of_bedrooms`: number of bedrooms in the property.
+- `number_of_bathrooms`: number of bathrooms in the property.
+- `zip_code`: ZIP code of the property.
+- `zoning`: zoning designation of the parcel.
+- `category_code_description`: broad property type, such as single family or apartments.
+- `quality_grade`: OPA quality classification for the property.
+- `census_tract` and `geographic_ward`: geographic identifiers that may be useful for neighborhood-level analysis.
+- `geometry`: the spatial location of the property as a point.
+
+## 6. Cleaning Strategy
+
+The raw dataset includes transactions that do not reflect real market prices. These need to be removed.
+
+Main issues:
+
+very low sale prices (non-market transactions)
+bundled property sales
+extreme values
+missing or inconsistent data
+
+
+## 7. Explore Raw Sale Price
+```{r}
+library(ggplot2)
+
+ggplot(opa_data, aes(x = sale_price)) +
+  geom_histogram(bins = 100) +
+  scale_x_continuous(labels = scales::comma) +
+  labs(title = "Raw Distribution of Sale Price")
+```
+The plot shows - 
+- Huge spike near 0–10,000
+- Long right tail (millions)
+
+
+### Removing Non-Market Transactions
+
+```{r removing non market trans}
+library(dplyr)
+
+clean_data <- opa_data %>%
+  filter(sale_price > 1000)  # remove $1 / very low transfers
+
+ggplot(clean_data, aes(x = sale_price)) +
+  geom_histogram(bins = 100) +
+  scale_x_continuous(labels = scales::comma) +
+  labs(title = "Raw Distribution of Sale Price")
+
+```
+
+** NOTE- Removing $1 porperties removed the huge spike in the plot!
+
+### Identifying Bundled Sales
+
+```{r removing bundles}
+bundle_groups <- clean_data %>%
+  group_by(sale_date, sale_price) %>%
+  filter(n() > 1)
+
+nrow(bundle_groups)
+
+clean_data <- clean_data %>%
+  group_by(sale_date, sale_price) %>%
+  filter(n() == 1) %>%
+  ungroup()
+
+```
+** This removed the bundled properties
+
+For better analysis, creating buckets of years and months is also important-
+
+### Processing Sale Date
+
+```{r}
+clean_data <- clean_data %>%
+  mutate(
+    sale_date = as.Date(sale_date),
+    sale_year = lubridate::year(sale_date),
+    sale_month = lubridate::month(sale_date)
+  )
+```
+Why this is necessary - Property prices change over time. Breaking the date into year and month allows the model to capture time-based patterns.
+
+### Sale Price Over Time
+
+```{r}
+ggplot(clean_data, aes(x = sale_date, y = sale_price)) +
+  geom_point(alpha = 0.2) +
+  scale_y_log10(labels = scales::comma) +
+  labs(title = "Sale Price Over Time")
+```
+
+Why this is necessary- This helps understand how property values vary across time and whether time should be included as a feature.
+
+## 12. Next Steps: Feature Exploration
+
+Now that the data is cleaned, the next step is to explore which features matter.
+
+### 12.1 Structural Features
+total livable area
+bedrooms
+bathrooms
+year built
+
+Why this is necessary- These describe the physical characteristics of the property and are often strong predictors of price.
+
+### 12.2 Categorical Features
+zoning
+property type
+quality grade
+
+Why this is necessary - These define how the property is used and classified, which affects value.
+
+### 12.3 Spatial Features
+ZIP code
+census tract
+ward
+geometry
+
+Why this is necessary- Location is one of the strongest drivers of property value.
+
+### 12.4 External Features
+Census data (income, population, etc.)
+Crime data, distance to parks, schools and public transit 
+
+Why this is necessary- Property value is influenced not just by the property itself, but also by the surrounding neighborhood.
+
+## 13. Feature Engineering Direction
+
+The final model will likely include:
+
+#### Structural
+area, bedrooms, bathrooms, age
+
+#### Temporal
+sale year, month, recency
+
+#### Categorical
+zoning, property type, quality grade
+
+#### Spatial
+census tract, ZIP, neighborhood indicators
+
+#### External
+income, crime, accessibility (schools, parks, transit)
+
+Why this is necessary- Combining these feature types creates a more complete and realistic representation of what drives property prices.
+
+## 14. Connection to SQL Pipeline
+
+Even though this analysis is done in R, all steps are designed to be replicated in SQL.
+
+This includes:
+
+filtering data
+grouping and removing bundles
+creating new columns
+joining external datasets
+
+And we are done! Thank you :-D
