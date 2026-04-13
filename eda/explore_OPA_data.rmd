@@ -240,4 +240,160 @@ grouping and removing bundles
 creating new columns
 joining external datasets
 
-And we are done! Thank you :-D
+
+## 16. Spatial and External Feature Definitions
+
+This section outlines the spatial join keys and external features that will be added to the dataset. These features extend the base OPA property data by incorporating neighborhood-level context, which is critical for predicting property values.
+
+### 16.1 Spatial Features (Base Geography)
+
+These are not ACS variables. These are **join keys** that connect OPA data with external datasets.
+
+- **GEOID** → Census Tract ID (Primary Key for joins)  
+- **NAME** → Census tract name (optional, for reference)  
+- **ZIP Code** → already available in OPA dataset  
+
+All external datasets (ACS, crime, etc.) should be joined using **Census Tract GEOID** wherever possible.
+
+**Why this is necessary**  
+These identifiers are what allow us to combine property-level data with neighborhood-level data. Without a consistent geography, we cannot integrate external features into the model.
+
+---
+
+### 16.2 External Features from ACS (via tidycensus)
+
+These variables are pulled at the **census tract level** and represent socioeconomic and housing context.
+
+---
+
+#### A. Income (Socioeconomic Feature)
+
+- **Median Household Income** → `B19013_001`
+
+**Feature created:**
+- `median_income`
+
+**Why this is necessary**  
+Income is one of the strongest predictors of property value and reflects the economic condition of the neighborhood.
+
+---
+
+#### B. Poverty (Socioeconomic Feature)
+
+- Population below poverty → `B17001_002`  
+- Total population (poverty table) → `B17001_001`  
+
+**Feature created:**
+- `poverty_rate = B17001_002 / B17001_001`
+
+**Why this is necessary**  
+Poverty levels capture economic stress in a neighborhood and often correlate negatively with property values.
+
+---
+
+#### C. Population and Density (Spatial Context)
+
+- Total population → `B01003_001`
+
+**Features created:**
+- `total_population`  
+- `population_density = total_population / tract_area`
+
+**Why this is necessary**  
+Population density helps capture how urban or dense a neighborhood is, which can influence property prices.
+
+---
+
+#### D. Education (Socioeconomic Feature)
+
+- Bachelor's → `B15003_022`  
+- Master's → `B15003_023`  
+- Professional → `B15003_024`  
+- PhD → `B15003_025`  
+- Total population (education table) → `B15003_001`  
+
+**Feature created:**
+- `college_rate = (B15003_022 + B15003_023 + B15003_024 + B15003_025) / B15003_001`
+
+**Why this is necessary**  
+Education levels are a strong proxy for income, job access, and neighborhood desirability.
+
+---
+
+#### E. Employment (Economic Feature)
+
+- Labor force → `B23025_003`  
+- Unemployed → `B23025_005`  
+
+**Feature created:**
+- `unemployment_rate = unemployed / labor_force`
+
+**Why this is necessary**  
+Employment conditions directly reflect economic health and stability of an area.
+
+---
+
+### 16.3 Crime Data (External Spatial Layer)
+
+Source: Open Data Philly (crime incidents dataset) - https://opendataphilly.org/datasets/crime-incidents/
+
+
+**Data format:**
+- Point shapefile or CSV with coordinates  
+
+**Features to create:**
+- `crime_count` per census tract  
+- `crime_rate = crime_count / population`  
+
+**Method:**
+- Spatial join (point → census tract)
+
+**Why this is necessary**  
+Crime levels influence perceived safety and desirability, which directly impacts property values.
+
+---
+
+### 16.4 Accessibility Features (Spatial Analysis)
+
+Source: Open Data Philly 
+
+**Required shapefiles:**
+- Parks  
+- Schools  
+- Transit stops (SEPTA)  
+
+**Features to create:**
+
+#### Distance-based:
+- `distance_to_park`  
+- `distance_to_school`  
+- `distance_to_transit`  
+
+#### OR Count-based:
+- `parks_within_buffer`  
+- `transit_stops_within_500m`  
+
+**Why this is necessary**  
+Accessibility to amenities and transit is a major driver of property value and location desirability.
+
+---
+
+### 16.5 Feature Categories Summary
+
+To connect everything clearly, the final model will include:
+
+#### Structural Features (from OPA)
+- area, bedrooms, bathrooms, age  
+
+#### Temporal Features (from OPA)
+- sale year, month, recency  
+
+#### Spatial Features (base geography)
+- census tract (GEOID), ZIP (we will eventually choose the more statistically significant parameter in the model) 
+
+#### External Features (ACS)
+- income, poverty, education, employment  
+
+#### External Features (Spatial Layers)
+- crime rates  
+- accessibility to parks, schools, transit  
