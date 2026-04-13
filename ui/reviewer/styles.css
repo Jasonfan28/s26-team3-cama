@@ -4,13 +4,11 @@
     --brand-primary: #1e40af; /* Subdued enterprise blue */
     --brand-primary-hover: #1e3a8a;
     --bg-main: #f1f5f9; /* Slate 100 */
-    --bg-surface: #ffffff;
+    --bg-surface: #fff;
     --bg-map-placeholder: #e2e8f0; /* Slate 200 */
-    
     --text-primary: #0f172a; /* Slate 900 */
     --text-secondary: #475569; /* Slate 600 */
     --text-muted: #94a3b8; /* Slate 400 */
-    
     --border-color: #cbd5e1; /* Slate 300 */
     --border-light: #e2e8f0;
     
@@ -25,8 +23,8 @@
     --radius-lg: 8px;
     
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 5%);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
 }
 
 /* --- Global Reset --- */
@@ -37,7 +35,7 @@
 }
 
 body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: Inter, system-ui, -apple-system, sans-serif;
     background-color: var(--bg-main);
     color: var(--text-primary);
     height: 100vh; /* Prevents full page scroll */
@@ -184,7 +182,7 @@ body {
 
 .search-box input:focus {
     border-color: var(--brand-primary);
-    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+    box-shadow: 0 0 0 3px rgb(30 64 175 / 10%);
 }
 
 .btn-primary {
