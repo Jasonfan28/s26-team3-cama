@@ -1,0 +1,25 @@
+main:
+    params: [input]
+    steps:
+    - extract-phl-schools:
+        call: http.post
+        args:
+            url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/extract_phl_schools'
+            auth:
+                type: OIDC
+    - load-source-phl-schools:
+        call: http.get
+        args:
+            url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+            query:
+                sql: 'source_schools.sql'
+            auth:
+                type: OIDC
+    - load-core-phl-schools:
+        call: http.get
+        args:
+            url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+            query:
+                sql: 'core_schools.sql'
+            auth:
+                type: OIDC

@@ -1,0 +1,25 @@
+main:
+    params: [input]
+    steps:
+    - extract-phl-septa-stops:
+        call: http.post
+        args:
+            url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/extract_phl_septa_stops'
+            auth:
+                type: OIDC
+    - load-source-phl-septa-stops:
+        call: http.get
+        args:
+            url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+            query:
+                sql: 'source_septa_stops.sql'
+            auth:
+                type: OIDC
+    - load-core-phl-septa-stops:
+        call: http.get
+        args:
+            url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+            query:
+                sql: 'core_septa_stops.sql'
+            auth:
+                type: OIDC

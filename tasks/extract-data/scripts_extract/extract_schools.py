@@ -35,6 +35,7 @@ def data_to_geoparquet(url: str):
             logging.warning(f"Unexpected Content-Type '{content_type}' on {url}, attempting gpd read anyway.")
 
     gdf = gpd.read_file(io.BytesIO(response.content)).to_crs(crs="EPSG:4326")
+    gdf.columns = gdf.columns.str.lower()
 
     if gdf.empty:
         raise ValueError("Loaded GeoDataFrame is empty")
@@ -59,21 +60,21 @@ def upload_to_gcloud(obj, bucket_name, blob_name):
 
 
 @functions_framework.http
-def extract_phl_pwd_parcels(request):
+def extract_phl_schools(request):
 
-    logging.info("Extracting PWD Parcels...")
+    logging.info("Extracting Schools...")
 
     try:
         bucket_name = os.environ["BUCKET_NAME"]
-        blob_name = os.environ["BLOB_PWD_PARCELS"]
+        blob_name = os.environ["BLOB_SCHOOLS"]
     except (KeyError, ValueError) as e:
         logging.error(f"Configuration error {e}")
         return ("Server misconfiguration", 500)
 
-    URL_PWDPARCELS = "https://hub.arcgis.com/api/v3/datasets/84baed491de44f539889f2af178ad85c_0/downloads/data?format=geojson&spatialRefId=4326&where=1%3D1"
+    URL_SCHOOLS = "https://hub.arcgis.com/api/v3/datasets/d46a7e59e2c246c891fbee778759717e_0/downloads/data?format=geojson&spatialRefId=4326&where=1%3D1"
 
     try:
-        data = data_to_geoparquet(URL_PWDPARCELS)
+        data = data_to_geoparquet(URL_SCHOOLS)
 
         try:
             upload_to_gcloud(
@@ -87,4 +88,4 @@ def extract_phl_pwd_parcels(request):
         logging.exception(f"Upload failed for {blob_name} in {bucket_name}: {e}")
         return ("Upload failed", 500)
 
-    return ("Successfully imported PWD Parcels.", 200)
+    return ("Successfully imported Schools.", 200)

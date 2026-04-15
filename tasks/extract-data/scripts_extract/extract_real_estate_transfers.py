@@ -38,6 +38,7 @@ def data_to_parquet(url: str, query: str):
         raise ValueError("No data returned from API")
 
     df = pd.DataFrame(data_raw["rows"])
+    df.columns = df.columns.str.lower()
 
     buffer = io.BytesIO()
     df.to_parquet(buffer, engine="pyarrow", index=False)

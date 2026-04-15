@@ -4,17 +4,16 @@ import logging
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-import pandas as pd
+import geopandas as gpd
 
 import functions_framework
 from google.cloud import storage, exceptions
 
 
-def data_to_parquet(url: str, query: str):
+def data_to_geoparquet(url: str):
     """
-    Function to download data and convert to parquet format
+    Function to validate URL and convert GeoJSON to GeoParquet
     """
-
     with requests.Session() as session:
         retries = Retry(
             total=3,
@@ -24,22 +23,25 @@ def data_to_parquet(url: str, query: str):
         )
         session.mount("https://", HTTPAdapter(max_retries=retries))
 
-        r = session.get(url, params={"q": query}, timeout=120)
-        r.raise_for_status()
+        response = session.get(url, timeout=120)
+        response.raise_for_status()
 
-        try:
-            data_raw = r.json()
-        except ValueError:
-            logging.error("Invalid JSON response.")
-            raise
+        # basic content validation
+        content_type = response.headers.get("Content-Type", "")
+        if "error" in response.text.lower():
+            raise ValueError("Remote URL response contains error payload")
 
-    if "rows" not in data_raw or not data_raw["rows"]:
-        raise ValueError("No data returned from API")
+        if not any(ct in content_type.lower() for ct in ["application/json", "geo+json", "json"]):
+            logging.warning(f"Unexpected Content-Type '{content_type}' on {url}, attempting gpd read anyway.")
 
-    df = pd.DataFrame(data_raw["rows"])
+    gdf = gpd.read_file(io.BytesIO(response.content)).to_crs(crs="EPSG:4326")
+    gdf.columns = gdf.columns.str.lower()
+
+    if gdf.empty:
+        raise ValueError("Loaded GeoDataFrame is empty")
 
     buffer = io.BytesIO()
-    df.to_parquet(buffer, engine="pyarrow", index=False)
+    gdf.to_parquet(buffer, engine="pyarrow", index=False)
     buffer.seek(0)
 
     return buffer
@@ -58,23 +60,21 @@ def upload_to_gcloud(obj, bucket_name, blob_name):
 
 
 @functions_framework.http
-def extract_phl_opa_assessments(request):
+def extract_phl_pwd_parcels(request):
 
-    logging.info("Extracting OPA Assessments...")
+    logging.info("Extracting PWD Parcels...")
 
     try:
-        start_year = int(os.environ["START_YEAR"])
         bucket_name = os.environ["BUCKET_NAME"]
-        blob_name = os.environ["BLOB_OPA_ASSESS"]
+        blob_name = os.environ["BLOB_PWD_PARCELS"]
     except (KeyError, ValueError) as e:
         logging.error(f"Configuration error {e}")
         return ("Server misconfiguration", 500)
 
-    query_assess = f"SELECT * FROM assessments WHERE year >= {start_year}"
-    URL_ASSESSMENTS = "https://phl.carto.com/api/v2/sql"
+    URL_PWDPARCELS = "https://hub.arcgis.com/api/v3/datasets/84baed491de44f539889f2af178ad85c_0/downloads/data?format=geojson&spatialRefId=4326&where=1%3D1"
 
     try:
-        data = data_to_parquet(URL_ASSESSMENTS, query_assess)
+        data = data_to_geoparquet(URL_PWDPARCELS)
 
         try:
             upload_to_gcloud(
@@ -84,8 +84,8 @@ def extract_phl_opa_assessments(request):
                 )
         finally:
             data.close()
-    except (requests.RequestException, ValueError, pd.errors.ParserError, exceptions.GoogleCloudError) as e:
+    except (requests.RequestException, ValueError, exceptions.GoogleCloudError) as e:
         logging.exception(f"Upload failed for {blob_name} in {bucket_name}: {e}")
         return ("Upload failed", 500)
 
-    return ("Successfully imported OPA Assessments.", 200)
+    return ("Successfully imported PWD Parcels.", 200)
