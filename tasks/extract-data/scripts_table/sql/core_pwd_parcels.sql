@@ -1,9 +1,9 @@
 CREATE OR REPLACE TABLE ${dataset_name_core}.core_phl_pwd_parcels AS
 SELECT
-  parcel_id,
-  address,
-  bldg_code,
-  bldg_desc,
-  shape__area as shape_area,
-  geometry
+    parcel_id,
+    address,
+    bldg_code,
+    bldg_desc,
+    shape__area AS shape_area,
+    geometry
 FROM ${dataset_name_source}.source_phl_pwd_parcels
