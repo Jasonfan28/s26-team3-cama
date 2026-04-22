@@ -14,7 +14,7 @@ def query_assessment_bins(project_id: str) -> list[dict]:
             lower_bound,
             upper_bound,
             property_count
-        FROM `derived.current_assessment_bins`
+        FROM `musa5090s26-team3.derived.current_assessment_bins`
         ORDER BY lower_bound
     """
     rows = client.query(query).result()
@@ -29,7 +29,7 @@ def query_tax_year_assessment_bins(project_id: str) -> list[dict]:
             lower_bound,
             upper_bound,
             property_count
-        FROM `derived.tax_year_assessment_bins`
+        FROM `musa5090s26-team3.derived.tax_year_assessment_bins`
         ORDER BY tax_year, lower_bound
     """
     rows = client.query(query).result()
@@ -64,7 +64,7 @@ def generate_assessment_chart_configs(request):
     # --- current_assessment_bins ---
     current_blob_name = "configs/current_assessment_bins.json"
     try:
-        current_rows = query_current_assessment_bins(project_id)
+        current_rows = query_assessment_bins(project_id)
     except exceptions.GoogleCloudError as e:
         logging.exception(f"BigQuery query failed for current_assessment_bins: {e}")
         errors.append("current_assessment_bins query failed")
