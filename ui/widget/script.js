@@ -22,9 +22,9 @@ document.addEventListener("DOMContentLoaded", () => {
       history: [
         { year: "2022", value: 98000, land: "$28,000", improve: "$70,000" },
         { year: "2023", value: 152000, land: "$30,400", improve: "$121,600" },
-        { year: "2024", value: 185000, land: "$33,000", improve: "$152,000" }
-      ]
-    }
+        { year: "2024", value: 185000, land: "$33,000", improve: "$152,000" },
+      ],
+    },
   };
 
   function renderChart(history) {
@@ -39,12 +39,12 @@ document.addEventListener("DOMContentLoaded", () => {
         datasets: [{
           data: history.map(d => d.value),
           borderColor: "#1e40af",
-          borderWidth: 2
-        }]
+          borderWidth: 2,
+        }],
       },
       options: {
-        plugins: { legend: { display: false } }
-      }
+        plugins: { legend: { display: false } },
+      },
     });
   }
 
