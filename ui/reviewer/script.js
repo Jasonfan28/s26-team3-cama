@@ -94,10 +94,39 @@ document.addEventListener('DOMContentLoaded', () => {
   // Assessment Value Distribution — loads real bin data from /configs/
   const BUCKET_URL = 'https://storage.googleapis.com/musa5090s26-team3-public';
   const TAIL_CAP = 1_500_000;
+  const DISPLAY_BIN_WIDTH = 50_000; // aggregate source $25k bins into $50k buckets for legibility
 
   const fmtMoney = v => v >= 1_000_000
     ? `$${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}M`
     : `$${Math.round(v / 1000)}k`;
+
+  // Roll source bins (any width) into fixed-width display buckets up to TAIL_CAP,
+  // collapsing everything ≥ TAIL_CAP into a single tail bucket.
+  function aggregateBins(rows, key = 'property_count') {
+    const buckets = new Map();
+    let tail = 0;
+    for (const r of rows) {
+      const count = r[key] ?? r.property_count ?? 0;
+      if (r.lower_bound >= TAIL_CAP) {
+        tail += count;
+        continue;
+      }
+      const bucketLower = Math.floor(r.lower_bound / DISPLAY_BIN_WIDTH) * DISPLAY_BIN_WIDTH;
+      buckets.set(bucketLower, (buckets.get(bucketLower) || 0) + count);
+    }
+    const out = [...buckets.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([lower, count]) => ({
+        lower,
+        upper: lower + DISPLAY_BIN_WIDTH,
+        count,
+        isTail: false,
+      }));
+    if (tail > 0) {
+      out.push({ lower: TAIL_CAP, upper: null, count: tail, isTail: true });
+    }
+    return out;
+  }
 
   async function renderValueDistribution() {
     const res = await fetch(`${BUCKET_URL}/configs/tax_year_assessment_bins.json`);
@@ -105,31 +134,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const bins = await res.json();
 
     const latestYear = Math.max(...bins.map(b => b.tax_year));
-    const rows = bins
-      .filter(b => b.tax_year === latestYear)
-      .sort((a, b) => a.lower_bound - b.lower_bound);
+    const rows = bins.filter(b => b.tax_year === latestYear);
 
-    const head = rows.filter(r => r.lower_bound < TAIL_CAP);
-    const tailCount = rows
-      .filter(r => r.lower_bound >= TAIL_CAP)
-      .reduce((s, r) => s + r.property_count, 0);
+    const aggregated = aggregateBins(rows);
+    const tailCount = aggregated.find(b => b.isTail)?.count ?? 0;
 
-    const seriesData = head.map(r => ({
-      x: r.lower_bound,
-      y: r.property_count,
-      lower: r.lower_bound,
-      upper: r.upper_bound,
-      isTail: false,
+    const seriesData = aggregated.map(b => ({
+      x: b.lower,
+      y: b.count,
+      lower: b.lower,
+      upper: b.upper,
+      isTail: b.isTail,
     }));
-    if (tailCount > 0) {
-      seriesData.push({
-        x: TAIL_CAP,
-        y: tailCount,
-        lower: TAIL_CAP,
-        upper: null,
-        isTail: true,
-      });
-    }
 
     const container = document.getElementById('chart-container-1');
     container.innerHTML = '<div class="apex-chart-wrap" style="padding:8px 12px;height:100%;"><div id="apex-value-dist" style="height:100%;"></div></div>';
@@ -146,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
       series: [{ name: 'Properties', data: seriesData }],
       plotOptions: {
         bar: {
-          columnWidth: '96%',
+          columnWidth: '88%',
           borderRadius: 2,
           borderRadiusApplication: 'end',
         },
@@ -169,11 +185,13 @@ document.addEventListener('DOMContentLoaded', () => {
       colors: ['#1e40af'],
       xaxis: {
         type: 'numeric',
-        tickAmount: 8,
+        min: 0,
+        max: TAIL_CAP,
+        tickAmount: 3,
         labels: {
           formatter: v => {
             const n = Number(v);
-            if (tailCount > 0 && n === TAIL_CAP) return `${fmtMoney(TAIL_CAP)}+`;
+            if (tailCount > 0 && n >= TAIL_CAP) return `${fmtMoney(TAIL_CAP)}+`;
             return fmtMoney(n);
           },
           style: { fontSize: '11px', colors: '#64748b' },
@@ -227,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         style: { fontSize: '14px', fontWeight: 600, color: '#0f172a' },
       },
       subtitle: {
-        text: `Bin width: $25k · Tail: ${fmtMoney(TAIL_CAP)}+`,
+        text: `Bin width: ${fmtMoney(DISPLAY_BIN_WIDTH)} · Tail: ${fmtMoney(TAIL_CAP)}+`,
         align: 'left',
         style: { fontSize: '11px', color: '#94a3b8' },
       },
@@ -243,83 +261,90 @@ document.addEventListener('DOMContentLoaded', () => {
     if (span) span.textContent = 'Failed to load distribution';
   });
 
-  // Predicted Value Distribution (issue #19) — depends on ML model output upstream.
-  // If the JSON isn't there yet, render a friendly empty state instead of an error.
-  async function renderPredictedDistribution() {
-    const res = await fetch(`${BUCKET_URL}/configs/current_assessment_bins.json`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const bins = await res.json();
+  // Assessed vs Predicted Comparison (issue #19) — overlays both distributions on
+  // the same bins so reviewers can spot where the model diverges from current assessments.
+  async function renderComparisonDistribution() {
+    const [assessedRes, predictedRes] = await Promise.all([
+      fetch(`${BUCKET_URL}/configs/tax_year_assessment_bins.json`),
+      fetch(`${BUCKET_URL}/configs/current_assessment_bins.json`),
+    ]);
+    if (!assessedRes.ok) throw new Error(`assessed HTTP ${assessedRes.status}`);
+    if (!predictedRes.ok) throw new Error(`predicted HTTP ${predictedRes.status}`);
 
-    if (!Array.isArray(bins) || bins.length === 0) {
-      throw new Error('empty bins');
+    const [assessedRaw, predictedRaw] = await Promise.all([
+      assessedRes.json(),
+      predictedRes.json(),
+    ]);
+
+    if (!Array.isArray(predictedRaw) || predictedRaw.length === 0) {
+      throw new Error('empty predicted bins');
     }
 
-    const rows = [...bins].sort((a, b) => a.lower_bound - b.lower_bound);
-    const head = rows.filter(r => r.lower_bound < TAIL_CAP);
-    const tailCount = rows
-      .filter(r => r.lower_bound >= TAIL_CAP)
-      .reduce((s, r) => s + r.property_count, 0);
+    const latestYear = Math.max(...assessedRaw.map(b => b.tax_year));
+    const assessed = assessedRaw.filter(b => b.tax_year === latestYear);
 
-    const seriesData = head.map(r => ({
-      x: r.lower_bound,
-      y: r.property_count,
-      lower: r.lower_bound,
-      upper: r.upper_bound,
-      isTail: false,
-    }));
-    if (tailCount > 0) {
-      seriesData.push({
-        x: TAIL_CAP,
-        y: tailCount,
-        lower: TAIL_CAP,
-        upper: null,
-        isTail: true,
-      });
+    // Aggregate each dataset into shared $50k buckets, then merge by lower bound.
+    const assessedBuckets = aggregateBins(assessed);
+    const predictedBuckets = aggregateBins(predictedRaw);
+
+    const binMap = new Map();
+    function upsert(buckets, key) {
+      for (const b of buckets) {
+        const existing = binMap.get(b.lower);
+        if (existing) {
+          existing[key] = b.count;
+        } else {
+          binMap.set(b.lower, { lower: b.lower, upper: b.upper, isTail: b.isTail, assessed: 0, predicted: 0, [key]: b.count });
+        }
+      }
     }
+    upsert(assessedBuckets, 'assessed');
+    upsert(predictedBuckets, 'predicted');
+
+    const sortedBins = [...binMap.values()].sort((a, b) => a.lower - b.lower);
+    const assessedSeries = sortedBins.map(b => ({ x: b.lower, y: b.assessed }));
+    const predictedSeries = sortedBins.map(b => ({ x: b.lower, y: b.predicted }));
 
     const container = document.getElementById('chart-container-2');
-    container.innerHTML = '<div class="apex-chart-wrap" style="padding:8px 12px;height:100%;"><div id="apex-pred-dist" style="height:100%;"></div></div>';
+    container.innerHTML = '<div class="apex-chart-wrap" style="padding:8px 12px;height:100%;"><div id="apex-comparison" style="height:100%;"></div></div>';
 
     const options = {
       chart: {
-        type: 'bar',
+        type: 'area',
         height: '100%',
         toolbar: { show: false },
         fontFamily: 'Inter, sans-serif',
         animations: { enabled: true, speed: 450, animateGradually: { enabled: false } },
         background: 'transparent',
       },
-      series: [{ name: 'Properties', data: seriesData }],
-      plotOptions: {
-        bar: {
-          columnWidth: '96%',
-          borderRadius: 2,
-          borderRadiusApplication: 'end',
-        },
-      },
+      series: [
+        { name: `Assessed (${latestYear})`, data: assessedSeries },
+        { name: 'Predicted (CAMA Model)', data: predictedSeries },
+      ],
       dataLabels: { enabled: false },
-      stroke: { show: false },
+      stroke: { curve: 'stepline', width: 2 },
+      colors: ['#1e40af', '#047857'],
       fill: {
-        type: 'gradient',
-        gradient: {
-          shade: 'light',
-          type: 'vertical',
-          shadeIntensity: 0.25,
-          gradientToColors: ['#34d399'],
-          inverseColors: false,
-          opacityFrom: 1,
-          opacityTo: 0.85,
-          stops: [0, 100],
-        },
+        type: 'solid',
+        opacity: [0.18, 0.18],
       },
-      colors: ['#047857'],
+      markers: { size: 0 },
+      legend: {
+        position: 'top',
+        horizontalAlign: 'left',
+        fontSize: '11px',
+        markers: { width: 10, height: 10 },
+        itemMargin: { horizontal: 8, vertical: 0 },
+      },
       xaxis: {
         type: 'numeric',
-        tickAmount: 8,
+        min: 0,
+        max: TAIL_CAP,
+        tickAmount: 3,
         labels: {
           formatter: v => {
             const n = Number(v);
-            if (tailCount > 0 && n === TAIL_CAP) return `${fmtMoney(TAIL_CAP)}+`;
+            if (n >= TAIL_CAP) return `${fmtMoney(TAIL_CAP)}+`;
             return fmtMoney(n);
           },
           style: { fontSize: '11px', colors: '#64748b' },
@@ -350,55 +375,69 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       tooltip: {
         theme: 'light',
+        shared: true,
+        intersect: false,
         x: { show: false },
-        custom: ({ dataPointIndex, w }) => {
-          const d = w.config.series[0].data[dataPointIndex];
-          const range = d.isTail
-            ? `${fmtMoney(d.lower)} and above`
-            : `${fmtMoney(d.lower)} – ${fmtMoney(d.upper)}`;
+        custom: ({ dataPointIndex }) => {
+          const b = sortedBins[dataPointIndex];
+          const range = b.isTail
+            ? `${fmtMoney(b.lower)} and above`
+            : `${fmtMoney(b.lower)} – ${fmtMoney(b.upper)}`;
+          const diff = b.predicted - b.assessed;
+          const diffLabel = diff === 0
+            ? ''
+            : `<div style="font-size:11px;color:${diff > 0 ? '#047857' : '#b91c1c'};margin-top:4px;">
+                 ${diff > 0 ? '+' : ''}${diff.toLocaleString()} predicted vs. assessed
+               </div>`;
           return `
-            <div style="padding:8px 12px;font-family:Inter,sans-serif;">
-              <div style="font-size:11px;color:#64748b;margin-bottom:2px;">${range}</div>
-              <div style="font-size:13px;font-weight:600;color:#0f172a;">
-                ${d.y.toLocaleString()} properties
+            <div style="padding:8px 12px;font-family:Inter,sans-serif;min-width:180px;">
+              <div style="font-size:11px;color:#64748b;margin-bottom:4px;">${range}</div>
+              <div style="font-size:12px;color:#1e40af;display:flex;justify-content:space-between;gap:12px;">
+                <span>Assessed (${latestYear})</span>
+                <strong>${b.assessed.toLocaleString()}</strong>
               </div>
+              <div style="font-size:12px;color:#047857;display:flex;justify-content:space-between;gap:12px;">
+                <span>Predicted</span>
+                <strong>${b.predicted.toLocaleString()}</strong>
+              </div>
+              ${diffLabel}
             </div>
           `;
         },
       },
       title: {
-        text: 'Predicted Value Distribution (CAMA Model)',
+        text: 'Assessed vs. Predicted Distribution',
         align: 'left',
         margin: 4,
         style: { fontSize: '14px', fontWeight: 600, color: '#0f172a' },
       },
       subtitle: {
-        text: `Bin width: $25k · Tail: ${fmtMoney(TAIL_CAP)}+`,
+        text: `${latestYear} assessments vs. CAMA predictions · ${fmtMoney(DISPLAY_BIN_WIDTH)} bins · log scale`,
         align: 'left',
         style: { fontSize: '11px', color: '#94a3b8' },
       },
     };
 
-    const chart = new ApexCharts(document.getElementById('apex-pred-dist'), options);
+    const chart = new ApexCharts(document.getElementById('apex-comparison'), options);
     chart.render();
   }
 
-  function showPredictedEmptyState(message) {
+  function showComparisonEmptyState(message) {
     const container = document.getElementById('chart-container-2');
     container.innerHTML = `
       <div class="chart-placeholder" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;color:#94a3b8;">
         <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:8px;">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
-        <div style="font-size:13px;font-weight:600;color:#475569;">Predicted Value Distribution</div>
+        <div style="font-size:13px;font-weight:600;color:#475569;">Assessed vs Predicted</div>
         <div style="font-size:11px;margin-top:4px;">${message}</div>
         <small style="margin-top:6px;color:#cbd5e1;">Will populate when <code>configs/current_assessment_bins.json</code> is published</small>
       </div>
     `;
   }
 
-  renderPredictedDistribution().catch(err => {
-    console.warn('Predicted distribution unavailable:', err.message);
-    showPredictedEmptyState('ML model output not available yet');
+  renderComparisonDistribution().catch(err => {
+    console.warn('Comparison distribution unavailable:', err.message);
+    showComparisonEmptyState('ML model predictions not available yet');
   });
 });

@@ -1,7 +1,7 @@
 CREATE OR REPLACE TABLE `musa5090s26-team3.derived.tax_year_assessment_bins` AS
 
 WITH residential_parcels AS (
-    SELECT DISTINCT parcel_number
+    SELECT DISTINCT parcel_number AS parcel_id
     FROM `musa5090s26-team3.source.source_phl_opa_properties`
     WHERE category_code_description IN (
         'SINGLE FAMILY',
@@ -17,8 +17,8 @@ SELECT
     CAST(FLOOR(SAFE_CAST(a.market_value AS FLOAT64) / 25000) * 25000 AS INT64) AS lower_bound,
     CAST((FLOOR(SAFE_CAST(a.market_value AS FLOAT64) / 25000) + 1) * 25000 AS INT64) AS upper_bound,
     COUNT(*) AS property_count
-FROM `musa5090s26-team3.source.source_phl_opa_assessments` AS a
-INNER JOIN residential_parcels USING (parcel_number)
+FROM `musa5090s26-team3.core.core_phl_opa_assessments` AS a
+INNER JOIN residential_parcels USING (parcel_id)
 WHERE
     a.market_value IS NOT NULL
     AND SAFE_CAST(a.market_value AS FLOAT64) > 0
