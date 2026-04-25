@@ -5,15 +5,16 @@ import pandas as pd
 import geopandas as gpd
 from google.cloud import storage
 
+
 @functions_framework.http
 def export_property_tile_info(request):
     try:
         # --- Config ---
-        bucket          = os.environ["BUCKET_NAME"]
-        parquet_file    = os.environ["PARQUET_FILE"]
-        opa_props_file  = os.environ["OPA_PROPERTIES_FILE"]
-        output_bucket   = os.environ["OUTPUT_BUCKET"]
-        output_file     = os.environ["OUTPUT_FILE"]
+        bucket = os.environ["BUCKET_NAME"]
+        parquet_file = os.environ["PARQUET_FILE"]
+        opa_props_file = os.environ["OPA_PROPERTIES_FILE"]
+        output_bucket = os.environ["OUTPUT_BUCKET"]
+        output_file = os.environ["OUTPUT_FILE"]
 
         client = storage.Client()
 
