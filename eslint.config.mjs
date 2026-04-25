@@ -57,6 +57,7 @@ export default defineConfig([
         ...globals.browser,
         L: "readonly",
         Chart: "readonly",
+        ApexCharts: "readonly",
       },
       ecmaVersion: "latest",
       sourceType: "module",

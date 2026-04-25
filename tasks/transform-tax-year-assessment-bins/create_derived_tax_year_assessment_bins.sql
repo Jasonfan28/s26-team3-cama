@@ -18,7 +18,7 @@ SELECT
     CAST((FLOOR(SAFE_CAST(a.market_value AS FLOAT64) / 25000) + 1) * 25000 AS INT64) AS upper_bound,
     COUNT(*) AS property_count
 FROM `musa5090s26-team3.source.source_phl_opa_assessments` AS a
-INNER JOIN residential_parcels AS r USING (parcel_number)
+INNER JOIN residential_parcels USING (parcel_number)
 WHERE
     a.market_value IS NOT NULL
     AND SAFE_CAST(a.market_value AS FLOAT64) > 0

@@ -91,21 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
   searchBtn.addEventListener('click', showPropertyDetails);
 
   // --- 4. Initialize Sidebar Distribution Charts (Right Panel) ---
-  const commonOptions = {
-    plugins: { legend: { display: false } },
-    scales: { y: { display: false }, x: { grid: { display: false } } },
-    elements: { line: { tension: 0.4 }, point: { radius: 0 } },
-    maintainAspectRatio: false,
-    responsive: true,
-  };
-
-  // Helper to replace the HTML placeholder with a canvas element
-  function setupCanvas(containerId) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '<div style="position: relative; height: 100%; width: 100%; padding: 16px;"><canvas></canvas></div>';
-    return container.querySelector('canvas').getContext('2d');
-  }
-
   // Assessment Value Distribution — loads real bin data from /configs/
   const BUCKET_URL = 'https://storage.googleapis.com/musa5090s26-team3-public';
   const TAIL_CAP = 1_500_000;
