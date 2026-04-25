@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Historical Assessment Widget</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="widget-container">
+
+  <!-- 🔍 OPA INPUT -->
+  <div class="search-section">
+    <input
+      type="text"
+      id="opa-input"
+      placeholder="Enter OPA ID..."
+    />
+    <button id="search-btn">Search</button>
+  </div>
+
+  <!-- 🏠 PROPERTY HEADER -->
+  <div class="property-header" id="property-header" style="display:none;">
+    <h2 id="address">238 W CLAPIER ST</h2>
+    <p id="meta">Philadelphia, PA</p>
+    <div class="current-value">
+      <span>Current Assessment</span>
+      <strong id="current-value">$185,000</strong>
+    </div>
+  </div>
+
+  <!-- 📈 CHART -->
+  <div class="chart-section" id="chart-section" style="display:none;">
+    <h3>Valuation History</h3>
+    <canvas id="valuationChart"></canvas>
+  </div>
+
+  <!-- 📊 TABLE -->
+  <div class="table-section" id="table-section" style="display:none;">
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Market Value</th>
+          <th>Land</th>
+          <th>Improvement</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

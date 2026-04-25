@@ -1,0 +1,81 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  padding: 20px;
+}
+
+.widget-container {
+  max-width: 600px;
+  margin: auto;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+/* SEARCH */
+.search-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-section input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.search-section button {
+  background: #1e40af;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+/* PROPERTY */
+.property-header h2 {
+  margin: 0;
+}
+
+.property-header p {
+  color: gray;
+  margin: 4px 0 10px;
+}
+
+.current-value {
+  margin-top: 10px;
+}
+
+.current-value strong {
+  font-size: 20px;
+  color: #1e40af;
+}
+
+/* CHART */
+.chart-section {
+  margin-top: 30px;
+}
+
+/* TABLE */
+.table-section {
+  margin-top: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #333;
+  color: white;
+  text-align: left;
+  padding: 8px;
+}
+
+td {
+  padding: 8px;
+  border-top: 1px solid #ddd;
+}

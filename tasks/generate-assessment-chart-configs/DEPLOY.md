@@ -15,3 +15,9 @@ gcloud functions deploy generate-assessment-chart-configs \
 --no-allow-unauthenticated \
 --trigger-http
 ```
+
+# call
+
+gcloud functions call generate-assessment-chart-configs \
+  --region=us-central1 \
+  --project=musa5090s26-team3
