@@ -7,7 +7,7 @@ import functions_framework
 from google.cloud import bigquery, exceptions, storage
 
 
-def query_assessment_bins(project_id: str) -> list[dict]:
+def query_current_assessment_bins(project_id: str) -> list[dict]:
     client = bigquery.Client(project=project_id)
     query = """
         SELECT
