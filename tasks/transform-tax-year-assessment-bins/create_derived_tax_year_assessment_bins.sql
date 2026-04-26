@@ -5,7 +5,7 @@ SELECT
     CAST(FLOOR(SAFE_CAST(market_value AS FLOAT64) / 25000) * 25000 AS INT64) AS lower_bound,
     CAST((FLOOR(SAFE_CAST(market_value AS FLOAT64) / 25000) + 1) * 25000 AS INT64) AS upper_bound,
     COUNT(*) AS property_count
-FROM `{project}.source.source_phl_opa_assessments`
+FROM `{project}.core.core_phl_opa_assessments`
 WHERE
     market_value IS NOT NULL
     AND SAFE_CAST(market_value AS FLOAT64) > 0
