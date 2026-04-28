@@ -8,20 +8,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
     <div class="app-container">
         <header class="top-nav">
             <div class="brand">
-                <div class="logo-placeholder"></div>
-                <h1>Philadelphia CAMA Assessment Reviewer</h1>
-            </div>
-            <div class="user-controls">
-                <div class="icon-btn" title="Settings">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <div class="logo-wrapper">
+                    <img src="https://www.phila.gov/assets/images/city-of-philadelphia-logo-medium-white.png" alt="City of Philadelphia" class="logo-bell">
                 </div>
-                <div class="user-profile" title="User Profile">
-                    <span>JD</span>
+                <div>
+                    <h1>Philadelphia CAMA Assessment Reviewer</h1>
+                    <p class="nav-subtitle">Office of Property Assessment · 2025 Tax Year</p>
                 </div>
             </div>
         </header>
@@ -47,56 +45,62 @@
                     <div class="card property-card" style="display: none;">
                         <div class="data-group">
                             <label>Address</label>
-                            <div class="data-value">1234 Market St, Philadelphia, PA 19107</div>
+                            <div class="data-value" id="prop-address">—</div>
                         </div>
                         <div class="data-group">
                             <label>OPA/BRT Number</label>
-                            <div class="data-value">883309000</div>
+                            <div class="data-value" id="prop-parcel">—</div>
                         </div>
                         <div class="divider"></div>
                         <div class="data-group">
-                            <label>Current Assessed Value (2025)</label>
-                            <div class="data-value highlight-currency">$450,000</div>
+                            <label>Assessed Value (2025)</label>
+                            <div class="data-value highlight-currency" id="prop-assessed">—</div>
+                        </div>
+                        <div class="data-group">
+                            <label>Assessed Value (2024)</label>
+                            <div class="data-value highlight-currency" id="prop-assessed-2024">—</div>
                         </div>
                         <div class="data-group">
                             <label>Predicted Value (CAMA Model)</label>
-                            <div class="data-value highlight-currency predicted">$465,500</div>
+                            <div class="data-value highlight-currency predicted" id="prop-predicted">—</div>
                         </div>
                     </div>
                 </div>
             </aside>
 
             <section class="map-area">
-                <div id="map-container">
-                    <div class="map-placeholder">
-                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
-                        <h3>Map View</h3>
-                        <p>Vector tiles from <code>/tiles/</code> will render here.</p>
-                    </div>
+                <div id="map-container"></div>
+                <div class="map-legend">
+                    <div class="legend-title">Assessed Value (2025)</div>
+                    <div class="legend-item"><span class="legend-swatch" style="background:#fff7ed;"></span> &lt; $50k</div>
+                    <div class="legend-item"><span class="legend-swatch" style="background:#fdba74;"></span> $50k – $100k</div>
+                    <div class="legend-item"><span class="legend-swatch" style="background:#f97316;"></span> $100k – $200k</div>
+                    <div class="legend-item"><span class="legend-swatch" style="background:#ea580c;"></span> $200k – $350k</div>
+                    <div class="legend-item"><span class="legend-swatch" style="background:#c2410c;"></span> $350k – $600k</div>
+                    <div class="legend-item"><span class="legend-swatch" style="background:#7c2d12;"></span> $600k+</div>
                 </div>
             </section>
 
             <aside class="sidebar panel analytics-panel">
                 <h2>Assessment Analytics</h2>
-                <p class="subtitle">Neighborhood vs. Citywide Distribution</p>
-                
-                <div id="chart-container-1" class="chart-card">
-                    <div class="chart-placeholder">
-                        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        <span>Loading Value Distribution...</span>
-                        <small>Waiting for <code>/configs/</code> JSON</small>
-                    </div>
-                </div>
 
-                <div id="chart-container-2" class="chart-card">
-                    <div class="chart-placeholder">
-                        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
-                        <span>Loading Error Margin Analysis...</span>
-                    </div>
+                <div class="chart-section-header" style="margin-top: 12px;">
+                    <span class="chart-label">Tax Year Distribution</span>
+                    <select id="year-select" class="year-select"></select>
                 </div>
+                <div id="chart-container-1" class="chart-card"></div>
+
+                <div class="chart-section-header">
+                    <span class="chart-label">Current Model Assessments</span>
+                </div>
+                <div id="chart-container-2" class="chart-card"></div>
             </aside>
 
         </main>
     </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
