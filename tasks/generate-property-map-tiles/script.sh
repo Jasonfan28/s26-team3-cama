@@ -11,13 +11,11 @@ ogr2ogr \
   -dsco MAXZOOM=18 \
   -dsco COMPRESS=NO \
   -dsco MAX_SIZE=1000000 \
-  ./properties \
+  ./tiles \
   ./property_tile_info.geojson
 
 gcloud storage cp \
   --recursive \
   --content-type=application/vnd.mapbox-vector-tile \
-  --content-encoding=gzip \
-  --do-not-decompress \
-  ./properties \
-  gs://musa5090s26-team3-public/tiles
+  ./tiles \
+  gs://musa5090s26-team3-public/
