@@ -1,4 +1,5 @@
 const BUCKET_BASE = 'https://storage.googleapis.com/musa5090s26-team3-public';
+const MAX_VALUE = 1000000;
 
 document.addEventListener('DOMContentLoaded', async () => {
   // --- 1. Initialize Map ---
@@ -75,6 +76,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   searchBtn.addEventListener('click', showPropertyDetails);
 
   // --- 4. Shared chart helpers ---
+  function formatDollar(val) {
+    if (val >= 1000000) return '$' + (val / 1000000) + 'M';
+    if (val >= 1000) return '$' + (val / 1000) + 'k';
+    return '$' + val;
+  }
+
   function setupCanvas(containerId, canvasId) {
     const container = document.getElementById(containerId);
     container.innerHTML = `<div style="position:relative;height:100%;width:100%;padding:16px;"><canvas id="${canvasId}"></canvas></div>`;
@@ -83,7 +90,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function buildChartOptions(labels) {
     return {
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => {
+              const i = items[0].dataIndex;
+              const lower = labels[i];
+              const upper = lower + 25000;
+              return `${formatDollar(lower)} – ${formatDollar(upper)}`;
+            },
+            label: (item) => `${item.raw.toLocaleString()} properties`,
+          },
+        },
+      },
       scales: {
         y: {
           grid: { color: '#f1f5f9' },
@@ -93,12 +113,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
         x: {
           grid: { display: false },
+          min: 0,
+          max: MAX_VALUE,
           ticks: {
             callback: (val, i) => {
-              if (i % 5 === 0) return '$' + (labels[i] / 1000) + 'k';
+              const step = Math.floor(labels.length / 5);
+              if (i % step === 0) return formatDollar(labels[i]);
               return '';
             },
-            maxRotation: 45,
+            maxRotation: 0,
           },
         },
       },
@@ -127,7 +150,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     yearSelect.value = years[years.length - 1];
 
     function renderTaxYearChart(year) {
-      const yearData = taxYearData.filter((d) => d.tax_year === year);
+      const yearData = taxYearData
+        .filter((d) => d.tax_year === year && d.lower_bound <= MAX_VALUE);
       const labels = yearData.map((d) => d.lower_bound);
       const counts = yearData.map((d) => d.property_count);
 
@@ -168,8 +192,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const res = await fetch(`${BUCKET_BASE}/configs/current_assessment_bins.json`);
     const currentData = await res.json();
 
-    const labels = currentData.map((d) => d.lower_bound);
-    const counts = currentData.map((d) => d.property_count);
+    const filtered = currentData.filter((d) => d.lower_bound <= MAX_VALUE);
+    const labels = filtered.map((d) => d.lower_bound);
+    const counts = filtered.map((d) => d.property_count);
 
     const ctx = setupCanvas('chart-container-2', 'currentCanvas');
 
