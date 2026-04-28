@@ -1,0 +1,190 @@
+main:
+    params: [input]
+    steps:
+        - extract-data:
+            parallel:
+                branches:
+                    - data-pipeline-opa-assessments:
+                        steps:
+                            - extract-phl-opa-assessments:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/extract_phl_opa_assessments'
+                                    auth:
+                                        type: OIDC
+                            - create-source-phl-opa-assessments:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                                    query:
+                                        sql: 'source_opa_assessments.sql'
+                                    auth:
+                                        type: OIDC
+                            - create-core-phl-opa-assessments:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                                    query:
+                                        sql: 'core_opa_assessments.sql'
+                                    auth:
+                                        type: OIDC
+                    - data-pipeline-opa-properties:
+                        steps:
+                            - extract-phl-opa-properties:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/extract_phl_opa_properties'
+                                    auth:
+                                        type: OIDC
+                            - create-source-phl-opa-properties:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                                    query:
+                                        sql: 'source_opa_properties.sql'
+                                    auth:
+                                        type: OIDC
+                            - create-core-phl-opa-properties:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                                    query:
+                                        sql: 'core_opa_properties.sql'
+                                    auth:
+                                        type: OIDC
+                    - data-pipeline-pwd-parcels:
+                        steps:
+                            - extract-phl-pwd-parcels:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/extract_phl_pwd_parcels'
+                                    auth:
+                                        type: OIDC
+                            - create-source-phl-pwd-parcels:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                                    query:
+                                        sql: 'source_pwd_parcels.sql'
+                                    auth:
+                                        type: OIDC
+                            - create-core-phl-pwd-parcels:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                                    query:
+                                        sql: 'core_pwd_parcels.sql'
+                                    auth:
+                                        type: OIDC
+                    - data-pipeline-septa-stops:
+                        steps:
+                            - extract-phl-septa-stops:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/extract_phl_septa_stops'
+                                    auth:
+                                        type: OIDC
+                            - create-source-phl-septa-stops:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                                    query:
+                                        sql: 'source_septa_stops.sql'
+                                    auth:
+                                        type: OIDC
+                            - create-core-phl-septa-stops:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                                    query:
+                                        sql: 'core_septa_stops.sql'
+                                    auth:
+                                        type: OIDC
+        - create-intermediate-derived-tables:
+            parallel:
+                branches:
+                    - training-data:
+                        steps:
+                            - create-derived-opa-properties:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                                    query:
+                                        sql: 'derived_opa_properties.sql'
+                                    auth:
+                                        type: OIDC
+                            - create-derived-training-data:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                                    query:
+                                        sql: 'derived_training_data.sql'
+                                    auth:
+                                        type: OIDC
+                    - assessment-bins:
+                        steps:
+                            - create-current-year-assessment-bins:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/transform-current-assessment-bins'
+                                    auth:
+                                        type: OIDC
+                            - create-tax-year-assessment-bins:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/transform-tax-year-assessment-bins'
+                                    auth:
+                                        type: OIDC
+        - create-model-and-predict-values:
+            steps:
+                - create-model-linear-reg:
+                    call: http.post
+                    args:
+                        url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                        query:
+                            sql: 'derived_model_linear_reg.sql'
+                        auth:
+                            type: OIDC
+                - create-predicted-values:
+                    call: http.post
+                    args:
+                        url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                        query:
+                            sql: 'derived_predicted_values.sql'
+                        auth:
+                            type: OIDC
+                - create-web-dataset:
+                    call: http.post
+                    args:
+                        url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/run_sql'
+                        query:
+                            sql: 'derived_web_dataset.sql'
+                        auth:
+                            type: OIDC
+                - export-web-dataset:
+                    call: http.post
+                    args:
+                        url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/extract_web_dataset'
+                        auth:
+                            type: OIDC
+        - export-web-items:
+            parallel:
+                branches:
+                    - assessment-chart-configs:
+                        steps:
+                            - generate-assessment-chart-congifs:
+                                call: http.post
+                                args:
+                                    url: 'https://us-central1-musa5090s26-team3.cloudfunctions.net/generate-assessment-chart-configs'
+                                    auth:
+                                        type: OIDC
+                    - export-vector-tiles-and-metadata:
+                        steps:
+                            - export-vector-tiles:
+                                call: googleapis.run.v2.projects.locations.jobs.run
+                                args:
+                                    name: projects/musa5090s26-team3/locations/us-east4/jobs/generate-property-map-tiles
+                            - export-vector-tiles-metadata:
+                                call: googleapis.run.v2.projects.locations.jobs.run
+                                args:
+                                    name: projects/musa5090s26-team3/locations/us-east4/jobs/generate-map-tile-metadata

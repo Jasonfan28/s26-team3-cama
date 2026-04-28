@@ -1,7 +1,6 @@
 import os
 import io
 import logging
-import datetime
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -65,15 +64,13 @@ def extract_phl_opa_properties(request):
     logging.info("Extracting OPA Properties...")
 
     try:
-        start_year = int(os.environ["START_YEAR"])
-        start_date = datetime.date(start_year, 1, 1).isoformat()
         bucket_name = os.environ["BUCKET_NAME"]
         blob_name = os.environ["BLOB_OPA_PROPERTIES"]
     except (KeyError, ValueError) as e:
         logging.error(f"Configuration error {e}")
         return ("Server misconfiguration", 500)
 
-    query_props = f"SELECT * FROM opa_properties_public WHERE assessment_date >= '{start_date}'"
+    query_props = "SELECT * FROM opa_properties_public"
     URL_PROPERTIES = "https://phl.carto.com/api/v2/sql"
 
     try:
