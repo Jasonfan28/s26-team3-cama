@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('details-placeholder').style.display = 'none';
     document.querySelector('.property-card').style.display = 'block';
+    initValuationChart(props);
   });
 
   tileLayer.addTo(map);
@@ -87,7 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- 3. Valuation History Chart (Property Card) ---
   let valuationChartInstance = null;
 
-  function initValuationChart() {
+  function initValuationChart(props) {
     let canvas = document.getElementById('valuationLineChart');
 
     if (!canvas) {
@@ -107,26 +108,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       valuationChartInstance.destroy();
     }
 
+    const val2024 = props && props.market_value_2024 ? props.market_value_2024 : null;
+    const val2025 = props && props.market_value_2025 ? props.market_value_2025 : null;
+    const valPred = props && props.pred_value ? props.pred_value : null;
+
     valuationChartInstance = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: ['2022', '2023', '2024'],
+        labels: ['2024 Assessed', '2025 Assessed', '2025 Predicted'],
         datasets: [{
-          label: 'Valuation',
-          data: [46000, 152000, 180000],
+          label: 'Value',
+          data: [val2024, val2025, valPred],
           borderColor: '#1e40af',
-          backgroundColor: '#1e40af',
-          fill: false,
+          backgroundColor: 'rgba(30, 64, 175, 0.08)',
+          fill: true,
           borderWidth: 2,
+          pointBackgroundColor: ['#1e40af', '#1e40af', '#f97316'],
+          pointRadius: 4,
+          tension: 0.3,
         }],
       },
       options: {
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (item) => item.raw !== null ? '$' + item.raw.toLocaleString() : 'N/A',
+            },
+          },
+        },
         scales: {
           y: {
             beginAtZero: false,
             ticks: {
-              callback: (value) => '$' + value / 1000 + 'k',
+              callback: (value) => '$' + (value / 1000).toFixed(0) + 'k',
             },
           },
         },
