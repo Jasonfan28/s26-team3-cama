@@ -15,14 +15,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const propertyCard = document.querySelector('.property-card');
   const searchBtn = document.querySelector('.btn-primary');
 
-  function showPropertyDetails() {
-    detailsPlaceholder.style.display = 'none';
-    propertyCard.style.display = 'block';
-    initValuationChart();
-  }
-
-  searchBtn.addEventListener('click', showPropertyDetails);
-
   // --- 3. Valuation History Chart (Property Card) ---
   let valuationChartInstance = null;
 
@@ -73,6 +65,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       },
     });
   }
+
+  function showPropertyDetails() {
+    detailsPlaceholder.style.display = 'none';
+    propertyCard.style.display = 'block';
+    initValuationChart();
+  }
+
+  searchBtn.addEventListener('click', showPropertyDetails);
 
   // --- 4. Shared chart helpers ---
   function setupCanvas(containerId, canvasId) {
