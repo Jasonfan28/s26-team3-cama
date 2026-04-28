@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   L.vectorGrid.protobuf(tileUrl, {
     vectorTileLayerStyles: {
-      property_tile_info: (properties) => ({
+      'property_tile_info': (properties) => ({
         fillColor: getValueColor(properties.market_value_2025),
         fillOpacity: 0.8,
         stroke: true,
