@@ -1,5 +1,7 @@
+/* eslint-disable no-undef */
+
 const TAX_YEAR_BINS_URL = 'https://storage.googleapis.com/musa5090s26-team3-public/configs/tax_year_assessment_bins.json';
-const TILE_URL = 'https://storage.googleapis.com/musa5090s26-team3-public/tiles/properties/{z}/{x}/{y}.pbf';
+const TILE_URL = 'https://storage.googleapis.com/musa5090s26-team3-public/tiles/{z}/{x}/{y}.pbf';
 const LAYER_NAME = 'property_tile_info';
 
 // Color ramp: light yellow → dark red (low → high value)

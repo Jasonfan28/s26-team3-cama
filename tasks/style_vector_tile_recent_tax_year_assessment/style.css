@@ -21,7 +21,7 @@ body {
   background: white;
   padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 30%);
   font-family: sans-serif;
   font-size: 13px;
   min-width: 180px;
