@@ -14,12 +14,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- 2. Property Vector Tiles ---
   function getValueColor(value) {
     if (!value || value <= 0) return '#e2e8f0';
-    if (value < 50000) return '#dbeafe';
-    if (value < 100000) return '#93c5fd';
-    if (value < 200000) return '#3b82f6';
-    if (value < 350000) return '#1d4ed8';
-    if (value < 600000) return '#1e3a8a';
-    return '#0f172a';
+    if (value < 50000) return '#fff7ed';
+    if (value < 100000) return '#fdba74';
+    if (value < 200000) return '#f97316';
+    if (value < 350000) return '#ea580c';
+    if (value < 600000) return '#c2410c';
+    return '#7c2d12';
   }
 
   const tileUrl = 'https://storage.googleapis.com/musa5090s26-team3-public/tiles/{z}/{x}/{y}.pbf';
