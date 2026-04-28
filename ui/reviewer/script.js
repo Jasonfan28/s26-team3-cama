@@ -11,7 +11,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     attribution: '© OpenStreetMap contributors',
   }).addTo(map);
 
-  // --- 2. Property Search ---
+  // --- 2. Property Vector Tiles ---
+  function getValueColor(value) {
+    if (!value || value <= 0) return '#cbd5e1';
+    if (value < 50000) return '#fef9c3';
+    if (value < 100000) return '#fde68a';
+    if (value < 200000) return '#fb923c';
+    if (value < 350000) return '#dc2626';
+    if (value < 600000) return '#7f1d1d';
+    return '#1c1917';
+  }
+
+  const tileUrl = 'https://storage.googleapis.com/musa5090s26-team3-public/tiles/{z}/{x}/{y}.pbf';
+
+  L.vectorGrid.protobuf(tileUrl, {
+    vectorTileLayerStyles: {
+      property_tile_info: (properties) => ({
+        fillColor: getValueColor(properties.market_value_2025),
+        fillOpacity: 0.8,
+        stroke: true,
+        color: '#ffffff',
+        weight: 0.3,
+        opacity: 0.5,
+        fill: true,
+      }),
+    },
+    interactive: true,
+    maxNativeZoom: 18,
+    maxZoom: 18,
+  }).addTo(map);
+
+  // --- 3. Property Search ---
   const detailsPlaceholder = document.getElementById('details-placeholder');
   const propertyCard = document.querySelector('.property-card');
   const searchBtn = document.querySelector('.btn-primary');
